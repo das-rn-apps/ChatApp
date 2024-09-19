@@ -1,7 +1,7 @@
 export type ChatItem = {
     _id: string;
-    name: string;
     isGroup: boolean;
+    messages: [];
     lastMessage?: {
         text: string;
         createdAt: string;
@@ -15,8 +15,16 @@ export type ChatItem = {
 
 export type Message = {
     _id: string;
-    sender: string;
-    receiver: string;
+    sender: {
+        _id: string;
+        username: string;
+        profilePicture: string;
+    };
+    receiver: {
+        _id: string;
+        username: string;
+        profilePicture: string;
+    };
     senderName: string;
     receiverName?: string;
     text: string;

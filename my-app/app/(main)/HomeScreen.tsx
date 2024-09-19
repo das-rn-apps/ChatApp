@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, TextInput, Text, StatusBar } from 'react-native';
+import { View, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, TextInput, Text, StatusBar, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
@@ -23,8 +23,20 @@ export default function HomeScreen() {
         if (!isAuthenticated) {
             router.replace('/login');
         } else if (token) {
-            fetchChats(token).then(data => setChatList(data && data.length > 0 ? data : [])).catch(() => setChatList([]));
-            fetchUsers().then(data => setUsers(data && data.length > 0 ? data : [])).catch(() => setUsers([]));
+            fetchChats(token, user.id).then(chats => {
+                console.log('chats', chats);
+                setChatList(chats);
+                console.log('chats', chats);
+                console.log('chatList', chatList);
+            }).catch(error => {
+                setChatList([]);
+            });
+
+            fetchUsers().then(data => {
+                setUsers(data && data.length > 0 ? data : []);
+            }).catch(error => {
+                setUsers([]);
+            });
         }
     }, [isAuthenticated, token]);
 
@@ -45,7 +57,11 @@ export default function HomeScreen() {
             style={styles.userItem}
             onPress={() => handleChatSelect(item.username, item._id, item.profilePicture)}
         >
-            <Text style={[styles.userEmail, { color: theme.textColor }]}>{item.username}</Text>
+            <Image source={{ uri: item.profilePicture }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+            <View style={{ flexDirection: 'column', marginLeft: 10 }}>
+                <Text style={[styles.userEmail, { color: theme.textColor }]}>{item.username}</Text>
+                <Text style={[styles.userEmail, { color: theme.textColor }]}>{item.email}</Text>
+            </View>
         </TouchableOpacity>
     );
 
@@ -100,9 +116,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
     },
     userItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
         padding: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
+        gap: 5,
+        paddingHorizontal: 30,
     },
     userEmail: {
         fontSize: 16,

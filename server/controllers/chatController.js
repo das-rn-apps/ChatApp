@@ -4,19 +4,20 @@ import GroupInfo from '../models/GroupInfo.js';
 import PersonalChat from '../models/PersonalChat.js';
 
 export const getChats = async (req, res) => {
+    console.log('req.query', req.query.id);
     try {
-        const chats = await Chat.find({ participants: req.user._id })
+        const chats = await Chat.find({ participants: req.query.id })
             .populate('lastMessage')
-            .populate('groupInfo')
+            .populate('messages')
             .sort({ updatedAt: -1 });
 
         if (!chats || chats.length === 0) {
             return res.status(404).json({ message: 'No chats found for this user' });
         }
-
+        console.log('chats', chats);
         res.json(chats);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching chatsqwweqwewq', error: error.toString() });
+        res.status(500).json({ message: 'Error fetching chats', error: error.toString() });
     }
 };
 

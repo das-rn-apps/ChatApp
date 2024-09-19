@@ -2,11 +2,13 @@ import axios from 'axios';
 import { API_URL } from '@env';
 import { ChatItem, Message } from '../types/chat';
 
-export const fetchChats = async (token: string): Promise<ChatItem[]> => {
+export const fetchChats = async (token: string, id: string): Promise<ChatItem[]> => {
     try {
         const response = await axios.get(`${API_URL}/chats`, {
+            params: { id },
             headers: { Authorization: `Bearer ${token}` }
         });
+        console.log('response.datas', response.data);
         if (response.data && response.data.length > 0) {
             return response.data;
         } else {
