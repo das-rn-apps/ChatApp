@@ -17,7 +17,7 @@ export default function HomeScreen() {
     const [isSearching, setIsSearching] = useState(false);
     const router = useRouter();
     const { theme, isDarkMode } = useTheme();
-    const { isAuthenticated, token } = useAuth();
+    const { isAuthenticated, token, user } = useAuth();
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -33,10 +33,10 @@ export default function HomeScreen() {
         user.username?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const handleChatSelect = (recipientUsername: string, chatId: string, recipientProfilePicture: string) => {
+    const handleChatSelect = (recipientUsername: string, recipientId: string, recipientProfilePicture: string) => {
         router.push({
             pathname: '/chat/[id]',
-            params: { id: chatId, recipientUsername, recipientProfilePicture }
+            params: { id: recipientId, recipientUsername, recipientProfilePicture }
         });
     };
 

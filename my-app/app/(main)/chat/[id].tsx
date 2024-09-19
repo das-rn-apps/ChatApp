@@ -1,37 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, Image } from 'react-native';
+import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, Image, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { fetchMessages, sendMessage } from '@/services/chatService';
+import { Message } from '@/types/chat';
 
 export default function ChatScreen() {
     const { theme } = useTheme();
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const { id, recipientUsername, recipientProfilePicture } = useLocalSearchParams();
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
-    useEffect(() => {
-        if (token && id) {
-            fetchMessages(token, id as string).then(setMessages).catch(console.error);
+    const loadMessages = async () => {
+        if (user && id && token) {
+            try {
+                const fetchedMessages = await fetchMessages(token, user.id, id.toString());
+                setMessages(fetchedMessages);
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            } finally {
+                setIsLoading(false);
+            }
         }
-    }, [token, id]);
+    };
+
+    useEffect(() => {
+        loadMessages();
+    }, [user, id, token]);
 
     const handleSend = async () => {
-        if (newMessage.trim() && token && id) {
-            console.log('Sending message:', { token, chatId: id, text: newMessage.trim() });
+        if (newMessage.trim() && token && id && user) {
             try {
-                await sendMessage(token, id.toString(), newMessage.trim());
+                await sendMessage(token, user.id, id.toString(), newMessage.trim());
                 setNewMessage('');
-                fetchMessages(token, id.toString()).then(setMessages).catch(console.error);
+                loadMessages()
             } catch (error) {
                 console.error('Error sending message:', error);
             }
         }
     };
+
+    if (isLoading) {
+        return (
+            <View style={[styles.container, styles.centered, { backgroundColor: theme.backgroundColor }]}>
+                <ActivityIndicator size="large" color={theme.textColor} />
+            </View>
+        );
+    }
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
@@ -47,7 +67,7 @@ export default function ChatScreen() {
                 keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
                     <View style={[styles.messageBubble, { backgroundColor: theme.userMessageColor }]}>
-                        <Text style={{ color: theme.textColor }}>{item.content}</Text>
+                        <Text style={{ color: theme.textColor }}>{item.text}</Text>
                     </View>
                 )}
             />
@@ -70,6 +90,10 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    centered: {
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     header: {
         flexDirection: 'row',

@@ -19,6 +19,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [token, setToken] = useState<string | null>(null);
+
     useEffect(() => {
         checkAuthStatus();
     }, []);
@@ -26,9 +27,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkAuthStatus = async () => {
         try {
             const token = await AsyncStorage.getItem('authToken');
-            if (token) {
+            const userString = await AsyncStorage.getItem('user');
+            if (token && userString) {
+                const user = JSON.parse(userString);
                 setIsAuthenticated(true);
                 setToken(token);
+                setUser(user);
             }
         } catch (error) {
             console.error('Error checking auth status:', error);

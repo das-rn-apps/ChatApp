@@ -1,12 +1,38 @@
 import Message from '../models/Message.js';
 import Chat from '../models/Chat.js';
-import User from '../models/User.js'; // Add this import
+import User from '../models/User.js';
+import mongoose from 'mongoose';
 
-export const getMessagesByChatId = async (req, res) => {
+export const getMessagesById = async (req, res) => {
     try {
-        const messages = await Message.find({ chat: req.params.id })
-            .sort({ createdAt: 'asc' })
-            .populate('sender', 'username profilePicture');
+        const { senderId, recipientUserId } = req.body;
+
+        if (!senderId || !recipientUserId) {
+            console.log('Missing required fields');
+            return res.status(400).json({ message: "senderId and recipientUserId are required" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(senderId) || !mongoose.Types.ObjectId.isValid(recipientUserId)) {
+            return res.status(400).json({ message: "Invalid senderId or recipientUserId" });
+        }
+
+        const senderObjectId = new mongoose.Types.ObjectId(senderId);
+        const recipientObjectId = new mongoose.Types.ObjectId(recipientUserId);
+
+        // Find the chat between these two users
+        const chat = await Chat.findOne({
+            participants: { $all: [senderObjectId, recipientObjectId] }
+        });
+
+        if (!chat) {
+            return res.json([]);
+        }
+
+        const messages = await Message.find({ _id: { $in: chat.messages } })
+            .sort({ createdAt: 1 })
+            .populate('sender', 'username profilePicture')
+            .populate('receiver', 'username profilePicture');
+
         res.json(messages);
     } catch (error) {
         console.error('Error fetching messages:', error);
@@ -16,42 +42,43 @@ export const getMessagesByChatId = async (req, res) => {
 
 export const createMessage = async (req, res) => {
     try {
-        const { id: chatId } = req.params; // Change this line
-        const { text } = req.body;
-        const userId = req.user.userId;
-
-        console.log('Received message request:', { chatId, text, userId });
-
-        if (!text || !chatId) {
+        const { senderId, recipientUserId, text } = req.body;
+        if (!text || !senderId || !recipientUserId) {
             console.log('Missing required fields');
-            return res.status(400).json({ message: "Text and chatId are required" });
+            return res.status(400).json({ message: "Text, senderId, and recipientUserId are required" });
         }
 
-        const chat = await Chat.findById(chatId);
+        let chat = await Chat.findOne({ participants: { $all: [senderId, recipientUserId] } });
         if (!chat) {
-            console.log('Chat not found');
-            return res.status(404).json({ message: "Chat not found" });
+            console.log('Chat not found, creating a new one');
+            chat = new Chat({
+                participants: [senderId, recipientUserId],
+                messages: [],
+                lastMessage: null
+            });
         }
 
-        const user = await User.findById(userId);
-        if (!user) {
-            console.log('User not found');
+        const user = await User.findById(senderId);
+        const recipientUser = await User.findById(recipientUserId);
+
+        if (!user || !recipientUser) {
             return res.status(404).json({ message: "User not found" });
         }
 
         const newMessage = new Message({
-            sender: userId,
+            sender: senderId,
             senderName: user.username || user.email,
+            receiver: recipientUserId,
+            receiverName: recipientUser.username || recipientUser.email,
             text: text,
-            chat: chatId
         });
 
         const savedMessage = await newMessage.save();
 
+        chat.messages.push(savedMessage._id);
         chat.lastMessage = savedMessage._id;
         await chat.save();
 
-        console.log('Message created successfully');
         res.status(201).json(savedMessage);
     } catch (error) {
         console.error("Error creating message:", error);

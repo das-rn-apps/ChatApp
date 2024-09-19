@@ -15,11 +15,10 @@ export type ChatItem = {
 
 export type Message = {
     _id: string;
+    sender: string;
+    receiver: string;
+    senderName: string;
+    receiverName?: string;
     text: string;
-    sender: {
-        _id: string;
-        username: string;
-        profilePicture: string;
-    };
     createdAt: string;
 };

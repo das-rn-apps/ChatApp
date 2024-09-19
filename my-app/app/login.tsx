@@ -13,7 +13,7 @@ export default function AuthScreen() {
     const [isLogin, setIsLogin] = useState(true);
     const router = useRouter();
     const { theme, isDarkMode } = useTheme();
-    const { login, register } = useAuth();
+    const { login, register, user } = useAuth();
 
     const handleAuth = async () => {
         try {
@@ -26,7 +26,7 @@ export default function AuthScreen() {
                 }
                 await register(email, password);
             }
-            router.replace('/(main)/HomeScreen');
+            router.replace('/HomeScreen');
         } catch (error) {
             console.error(`${isLogin ? 'Login' : 'Registration'} error:`, error);
             Alert.alert(`${isLogin ? 'Login' : 'Registration'} Failed`, 'Please check your input and try again.');

@@ -3,10 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Switch } from '
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SettingsScreen() {
     const router = useRouter();
     const { theme, isDarkMode, toggleTheme } = useTheme();
+    const { token, user, logout } = useAuth();
+
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
@@ -37,7 +40,10 @@ export default function SettingsScreen() {
                     <Ionicons name="help-circle-outline" size={24} color={theme.textColor} style={styles.icon} />
                     <Text style={[styles.settingText, { color: theme.textColor }]}>Help</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.settingItem} onPress={() => router.push('/login' as never)}>
+                <TouchableOpacity style={styles.settingItem} onPress={() => {
+                    logout()
+                    router.replace('/login')
+                }}>
                     <Ionicons name="log-out-outline" size={24} color={theme.textColor} style={styles.icon} />
                     <Text style={[styles.settingText, { color: theme.textColor }]}>Logout</Text>
                 </TouchableOpacity>

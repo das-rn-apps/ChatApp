@@ -2,20 +2,32 @@ import axios from 'axios';
 import { API_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const login = async (email: string, password: string) => {
-    const response = await axios.post(`${API_URL}/auth/login`, { email, password });
-    const { token, user } = response.data;
-    if (token) {
-        await AsyncStorage.setItem('authToken', token);
-    } else {
-        console.error("No token received from server");
+export const login = async (email: string, password: string): Promise<{ token: string; user: any }> => {
+    try {
+        const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+        const { token, user } = response.data;
+
+        if (!token) {
+            throw new Error("No token received from server");
+        }
+
+        if (!user) {
+            throw new Error("No user info received from server");
+        }
+
+        await Promise.all([
+            AsyncStorage.setItem('authToken', token),
+            AsyncStorage.setItem('userInfo', JSON.stringify(user))
+        ]);
+
+        return { token, user };
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(`Login failed: ${error.response?.data?.message || error.message}`);
+        } else {
+            throw new Error(`Login failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+        }
     }
-    if (user) {
-        await AsyncStorage.setItem('userInfo', JSON.stringify(user));
-    } else {
-        console.error("No user info received from server");
-    }
-    return { token, user };
 };
 
 export const register = async (email: string, password: string) => {
@@ -33,6 +45,12 @@ export const register = async (email: string, password: string) => {
 };
 
 export const logout = async () => {
-    await AsyncStorage.removeItem('authToken');
-    await AsyncStorage.removeItem('userInfo');
+    try {
+        await AsyncStorage.removeItem('authToken');
+        await AsyncStorage.removeItem('userInfo');
+        console.log('Logout successful');
+    } catch (error) {
+        console.error('Logout error:', error);
+        throw error;
+    }
 };

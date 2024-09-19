@@ -16,7 +16,7 @@ export default function Index() {
                 router.replace('/login');
             }
         }
-    }, [isAuthenticated, loading, router]);
+    }, [isAuthenticated, loading]);
 
     if (loading) {
         return (
