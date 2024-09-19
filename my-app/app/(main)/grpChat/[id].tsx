@@ -7,20 +7,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { fetchMessages, sendMessage } from '@/services/chatService';
 import { Message } from '@/types/chat';
 import { Theme } from '@/constants/theme';
-import io from 'socket.io-client';
-import { SOCKET_URL } from '@env';
 
 export default function ChatScreen() {
     const { theme } = useTheme();
     const styles = createStyles(theme);
+
     const { token, user } = useAuth();
-    const { id, recipientUsername, recipientProfilePicture } = useLocalSearchParams();
+    const { id, name } = useLocalSearchParams();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
+
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const flatListRef = useRef<FlatList>(null);
-    const socketRef = useRef<any>(null);
+
 
     const loadMessages = async () => {
         if (user && id && token) {
@@ -37,27 +37,14 @@ export default function ChatScreen() {
 
     useEffect(() => {
         loadMessages();
-        socketRef.current = io(SOCKET_URL);
-        socketRef.current.on('message', (message: Message) => {
-            setMessages(prevMessages => [...prevMessages, message]);
-        });
-
-        return () => {
-            if (socketRef.current) {
-                socketRef.current.disconnect();
-            }
-        };
     }, [user, id, token]);
 
     const handleSend = async () => {
         if (newMessage.trim() && token && id && user) {
             try {
-                const sentMessage = await sendMessage(token, user.id, id.toString(), newMessage.trim());
+                await sendMessage(token, user.id, id.toString(), newMessage.trim());
                 setNewMessage('');
-                setMessages(prevMessages => [...prevMessages, sentMessage]);
-
-                // Emit the message through socket
-                socketRef.current.emit('message', sentMessage);
+                loadMessages();
             } catch (error) {
                 console.error('Error sending message:', error);
             }
@@ -108,8 +95,7 @@ export default function ChatScreen() {
                     <Ionicons name="arrow-back" size={24} color={theme.textColor} />
                 </TouchableOpacity>
                 <View style={styles.headerContent}>
-                    <Text style={styles.headerTitle}>{recipientUsername}</Text>
-                    <Image source={{ uri: recipientProfilePicture as string }} style={styles.profilePicture} />
+                    <Text style={styles.headerTitle}>{name}</Text>
                 </View>
             </View>
             <FlatList

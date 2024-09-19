@@ -67,10 +67,12 @@ export const createMessage = async (req, res) => {
 
         const newMessage = new Message({
             sender: senderId,
-            senderName: user.username || user.email,
+            senderName: user.username,
             receiver: recipientUserId,
-            receiverName: recipientUser.username || recipientUser.email,
+            receiverName: recipientUser.username,
             text: text,
+            senderProfilePicture: user.profilePicture,
+            receiverProfilePicture: recipientUser.profilePicture
         });
 
         const savedMessage = await newMessage.save();

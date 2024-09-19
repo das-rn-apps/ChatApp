@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -12,11 +12,13 @@ export default function AuthScreen() {
     const [username, setUsername] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLogin, setIsLogin] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
     const { theme, isDarkMode } = useTheme();
     const { login, register, user } = useAuth();
 
     const handleAuth = async () => {
+        setIsLoading(true);
         try {
             if (isLogin) {
                 await login(email, password);
@@ -32,6 +34,8 @@ export default function AuthScreen() {
         } catch (error) {
             console.error(`${isLogin ? 'Login' : 'Registration'} error:`, error);
             Alert.alert(`${isLogin ? 'Login' : 'Registration'} Failed`, 'Please check your input and try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -70,9 +74,13 @@ export default function AuthScreen() {
                         secureTextEntry
                     />
                 )}
-                <AuthButton title={isLogin ? 'Login' : 'Register'} onPress={handleAuth} />
-                <TouchableOpacity onPress={toggleAuthMode}>
-                    <Text style={[styles.toggleText, { color: theme.textColor }]}>
+                {isLoading ? (
+                    <ActivityIndicator size="large" color={theme.sendButtonColor} />
+                ) : (
+                    <AuthButton title={isLogin ? 'Login' : 'Register'} onPress={handleAuth} />
+                )}
+                <TouchableOpacity onPress={toggleAuthMode} disabled={isLoading}>
+                    <Text style={[styles.toggleText, { color: theme.textColor, opacity: isLoading ? 0.5 : 1 }]}>
                         {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
                     </Text>
                 </TouchableOpacity>

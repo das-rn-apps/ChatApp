@@ -5,6 +5,8 @@ const messageSchema = new mongoose.Schema({
     receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     senderName: { type: String, required: true },
     receiverName: { type: String },
+    senderProfilePicture: { type: String },
+    receiverProfilePicture: { type: String },
     text: { type: String, required: true },
     createdAt: { type: Date, default: Date.now }
 });

@@ -5,7 +5,7 @@ import PersonalChat from '../models/PersonalChat.js';
 
 export const getChats = async (req, res) => {
     try {
-        const chats = await Chat.find({ participants: req.query.id })
+        const chats = await Chat.find({ participants: req.query.id }, 'lastMessage updatedAt participants name isGroup')
             .populate('lastMessage')
             .sort({ updatedAt: -1 });
 

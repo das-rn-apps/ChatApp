@@ -18,7 +18,7 @@ const Header: React.FC = () => {
                     style={styles.profilePic}
                 />
             </TouchableOpacity>
-            <Text style={[styles.title, { color: theme.textColor }]}>WhatsApp</Text>
+            <Text style={[styles.title, { color: theme.textColor }]}>DasChat</Text>
             <TouchableOpacity onPress={() => router.push('/settings')}>
                 <Ionicons name="settings-outline" size={24} color={theme.textColor} />
             </TouchableOpacity>

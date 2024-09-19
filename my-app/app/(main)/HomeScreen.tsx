@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, TextInput, Text, StatusBar, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
@@ -19,7 +19,7 @@ export default function HomeScreen() {
     const { theme, isDarkMode } = useTheme();
     const { isAuthenticated, token, user } = useAuth();
 
-    useEffect(() => {
+    const loadData = useCallback(() => {
         if (!isAuthenticated) {
             router.replace('/login');
             return;
@@ -31,6 +31,15 @@ export default function HomeScreen() {
         }
     }, [isAuthenticated, token, user.id, router]);
 
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    useFocusEffect(
+        useCallback(() => {
+            loadData();
+        }, [loadData])
+    );
 
     const filteredUsers = users.filter(user =>
         user.username?.toLowerCase().includes(searchQuery.toLowerCase())

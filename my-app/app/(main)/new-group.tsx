@@ -1,33 +1,48 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, SafeAreaView, StatusBar } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, SafeAreaView, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { API_URL } from '@env';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
+import { fetchUsers } from '@/services/userService';
 
 export default function NewGroupScreen() {
-    const { theme, isDarkMode } = useTheme();
+    const { theme } = useTheme();
+    const { token } = useAuth();
     const [groupName, setGroupName] = useState('');
-    const [participants, setParticipants] = useState('');
+    const [users, setUsers] = useState([]);
+    const [selectedParticipants, setSelectedParticipants] = useState([]);
     const router = useRouter();
 
+    useEffect(() => {
+        if (token) {
+            fetchUsers(token)
+                .then(data => setUsers(data || []))
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                    setUsers([]);
+                });
+        }
+    }, [token]);
+
     const createGroup = async () => {
-        if (groupName.trim() === '' || participants.trim() === '') {
-            Alert.alert('Error', 'Please enter group name and participants');
+        if (groupName.trim() === '' || selectedParticipants.length === 0) {
+            Alert.alert('Error', 'Please enter group name and select participants');
             return;
         }
 
-        const participantList = participants.split(',').map(p => p.trim());
         const newGroup = {
             name: groupName,
             isGroup: true,
-            participants: participantList,
+            participants: selectedParticipants,
         };
 
         try {
-            const response = await axios.post(`${API_URL}/chats`, newGroup);
-            console.log('Group created:', response.data);
+            const response = await axios.post(`${API_URL}/chats`, newGroup, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             Alert.alert('Success', 'Group created successfully', [
                 { text: 'OK', onPress: () => router.push('/') }
             ]);
@@ -36,6 +51,26 @@ export default function NewGroupScreen() {
             Alert.alert('Error', 'Failed to create group. Please try again.');
         }
     };
+
+    const toggleParticipant = (userId) => {
+        setSelectedParticipants(prevSelected =>
+            prevSelected.includes(userId)
+                ? prevSelected.filter(id => id !== userId)
+                : [...prevSelected, userId]
+        );
+    };
+
+    const renderUserItem = ({ item }) => (
+        <TouchableOpacity
+            style={[
+                styles.userItem,
+                selectedParticipants.includes(item._id) && styles.selectedUserItem
+            ]}
+            onPress={() => toggleParticipant(item._id)}
+        >
+            <Text style={[styles.userName, { color: theme.textColor }]}>{item.username}</Text>
+        </TouchableOpacity>
+    );
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
@@ -47,12 +82,11 @@ export default function NewGroupScreen() {
                     value={groupName}
                     onChangeText={setGroupName}
                 />
-                <TextInput
-                    style={[styles.input, { backgroundColor: theme.inputBackgroundColor, color: theme.textColor }]}
-                    placeholder="Participants (comma-separated)"
-                    placeholderTextColor={theme.textColor + '80'}
-                    value={participants}
-                    onChangeText={setParticipants}
+                <FlatList
+                    data={users}
+                    renderItem={renderUserItem}
+                    keyExtractor={(item) => item._id}
+                    style={styles.userList}
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.sendButtonColor }]} onPress={createGroup}>
                     <Text style={styles.buttonText}>Create Group</Text>
@@ -65,15 +99,6 @@ export default function NewGroupScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
-    },
-    backButton: {
-        marginRight: 10,
-    },
-    headerTitle: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
     },
     content: {
         flex: 1,
@@ -85,6 +110,21 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 20,
         borderRadius: 5,
+    },
+    userList: {
+        flex: 1,
+        marginBottom: 20,
+    },
+    userItem: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+    },
+    selectedUserItem: {
+        backgroundColor: 'rgba(37, 211, 102, 0.1)',
+    },
+    userName: {
+        fontSize: 16,
     },
     button: {
         backgroundColor: '#25D366',
