@@ -22,23 +22,14 @@ export default function HomeScreen() {
     useEffect(() => {
         if (!isAuthenticated) {
             router.replace('/login');
-        } else if (token) {
-            fetchChats(token, user.id).then(chats => {
-                console.log('chats', chats);
-                setChatList(chats);
-                console.log('chats', chats);
-                console.log('chatList', chatList);
-            }).catch(error => {
-                setChatList([]);
-            });
-
-            fetchUsers().then(data => {
-                setUsers(data && data.length > 0 ? data : []);
-            }).catch(error => {
-                setUsers([]);
-            });
+            return;
         }
-    }, [isAuthenticated, token]);
+
+        if (token) {
+            fetchChats(token, user.id).then(setChatList).catch(() => setChatList([]));
+            fetchUsers().then(data => setUsers(data || [])).catch(() => setUsers([]));
+        }
+    }, [isAuthenticated, token, user.id, router]);
 
 
     const filteredUsers = users.filter(user =>

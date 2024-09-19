@@ -8,7 +8,6 @@ export const fetchChats = async (token: string, id: string): Promise<ChatItem[]>
             params: { id },
             headers: { Authorization: `Bearer ${token}` }
         });
-        console.log('response.datas', response.data);
         if (response.data && response.data.length > 0) {
             return response.data;
         } else {
