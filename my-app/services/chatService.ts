@@ -3,11 +3,18 @@ import { API_URL } from '@env';
 import { ChatItem, Message } from '../types/chat';
 
 export const fetchChats = async (token: string): Promise<ChatItem[]> => {
-    const response = await axios.get(`${API_URL}/chats`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    // console.log("Chats:", response.data);
-    return response.data;
+    try {
+        const response = await axios.get(`${API_URL}/chats`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data && response.data.length > 0) {
+            return response.data;
+        } else {
+            return [];
+        }
+    } catch (error) {
+        throw error;
+    }
 };
 
 export const fetchChatData = async (id: string, token: string): Promise<ChatItem> => {
@@ -18,13 +25,19 @@ export const fetchChatData = async (id: string, token: string): Promise<ChatItem
 };
 
 export const fetchMessages = async (token: string, chatId: string) => {
+    console.log(`Fetching messages for chat ${chatId}`);
     try {
+        console.log(`Making GET request to ${API_URL}/chats/${chatId}/messages`);
         const response = await axios.get(`${API_URL}/chats/${chatId}/messages`, {
             headers: { Authorization: `Bearer ${token}` }
         });
+        console.log(`Received response:`, response.data);
         return response.data;
     } catch (error) {
         console.error('Error fetching messages:', error);
+        if (axios.isAxiosError(error)) {
+            console.error('Axios error details:', error.response?.data);
+        }
         throw error;
     }
 };

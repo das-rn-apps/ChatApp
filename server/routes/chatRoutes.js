@@ -7,12 +7,12 @@ const router = express.Router();
 
 router.use(authenticateToken);
 
-router.get('/chats', getChats);
-router.post('/chats', createChat);
-router.get('/chats/:id', getChat);
-router.put('/chats/:id', updateChat);
-router.delete('/chats/:id', deleteChat);
-router.get('/chats/:id/messages', getMessagesByChatId);
-router.post('/chats/:id/messages', createMessage);
+router.get('/', getChats);
+router.post('/', createChat);
+router.get('/:id', getChat);
+router.put('/:id', updateChat);
+router.delete('/:id', deleteChat);
+router.get('/:id/messages', getMessagesByChatId);
+router.post('/:id/messages', createMessage);
 
 export default router;

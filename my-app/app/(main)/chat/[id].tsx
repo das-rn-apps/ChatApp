@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
@@ -9,7 +9,7 @@ import { fetchMessages, sendMessage } from '@/services/chatService';
 export default function ChatScreen() {
     const { theme } = useTheme();
     const { token } = useAuth();
-    const { id, recipientEmail } = useLocalSearchParams();
+    const { id, recipientUsername, recipientProfilePicture } = useLocalSearchParams();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const router = useRouter();
@@ -26,7 +26,6 @@ export default function ChatScreen() {
             try {
                 await sendMessage(token, id.toString(), newMessage.trim());
                 setNewMessage('');
-                // Refetch messages or update the local state
                 fetchMessages(token, id.toString()).then(setMessages).catch(console.error);
             } catch (error) {
                 console.error('Error sending message:', error);
@@ -40,7 +39,8 @@ export default function ChatScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color={theme.textColor} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.textColor }]}>{recipientEmail}</Text>
+                <Text style={[styles.headerTitle, { color: theme.textColor }]}>{recipientUsername}</Text>
+                <Image source={{ uri: recipientProfilePicture as string }} style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }} />
             </View>
             <FlatList
                 data={messages}
@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
         padding: 10,
         height: 60,

@@ -23,28 +23,29 @@ export default function HomeScreen() {
         if (!isAuthenticated) {
             router.replace('/login');
         } else if (token) {
-            fetchChats(token).then(setChatList).catch(console.error);
-            fetchUsers(token).then(setUsers).catch(console.error);
+            fetchChats(token).then(data => setChatList(data && data.length > 0 ? data : [])).catch(() => setChatList([]));
+            fetchUsers().then(data => setUsers(data && data.length > 0 ? data : [])).catch(() => setUsers([]));
         }
     }, [isAuthenticated, token]);
 
+
     const filteredUsers = users.filter(user =>
-        user.email.toLowerCase().includes(searchQuery.toLowerCase())
+        user.username?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const handleChatSelect = (recipientEmail: string, chatId: string) => {
+    const handleChatSelect = (recipientUsername: string, chatId: string, recipientProfilePicture: string) => {
         router.push({
             pathname: '/chat/[id]',
-            params: { id: chatId, recipientEmail }
+            params: { id: chatId, recipientUsername, recipientProfilePicture }
         });
     };
 
     const renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
             style={styles.userItem}
-            onPress={() => handleChatSelect(item.email, item._id)}
+            onPress={() => handleChatSelect(item.username, item._id, item.profilePicture)}
         >
-            <Text style={[styles.userEmail, { color: theme.textColor }]}>{item.email}</Text>
+            <Text style={[styles.userEmail, { color: theme.textColor }]}>{item.username}</Text>
         </TouchableOpacity>
     );
 

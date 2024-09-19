@@ -32,8 +32,8 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-app.use('/api/auth', authRoutes);
-app.use('/api', chatRoutes);
+app.use('/auth', authRoutes);
+app.use('/chats', chatRoutes);
 app.use('/api/users', userRoutes);
 
 io.on('connection', (socket) => {
