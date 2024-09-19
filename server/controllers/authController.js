@@ -4,9 +4,9 @@ import User from '../models/User.js';
 
 export const register = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
+        const { email, password, username } = req.body;
+        if (!email || !password || !username) {
+            return res.status(400).json({ message: "Email, password and username are required" });
         }
 
         const existingUser = await User.findOne({ email });
@@ -19,7 +19,8 @@ export const register = async (req, res) => {
 
         const newUser = new User({
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            username
         });
 
         await newUser.save();
@@ -28,7 +29,6 @@ export const register = async (req, res) => {
 
         res.status(201).json({ token, userId: newUser._id });
     } catch (error) {
-        console.error("Registration error:", error);
         res.status(500).json({ message: "Server error during registration" });
     }
 };
@@ -68,7 +68,6 @@ export const login = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Login error:', error);
         res.status(500).json({ message: 'Error logging in', error: error.toString() });
     }
 };

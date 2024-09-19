@@ -30,9 +30,10 @@ export const login = async (email: string, password: string): Promise<{ token: s
     }
 };
 
-export const register = async (email: string, password: string) => {
+export const register = async (email: string, password: string, username: string) => {
     try {
-        const response = await axios.post(`${API_URL}/auth/register`, { email, password });
+        console.log(API_URL, email, password, username);
+        const response = await axios.post(`${API_URL}/auth/register`, { email, password, username });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {

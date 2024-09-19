@@ -21,13 +21,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: process.env.SOCKET_CORS_ORIGIN || '*',
+        origin: '*',
         methods: ['GET', 'POST'],
     },
 });
 
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -40,7 +40,6 @@ io.on('connection', (socket) => {
     console.log('A user connected');
 
     socket.on('message', (message) => {
-        // Broadcast the message to all clients except the sender
         socket.broadcast.emit('message', message);
     });
 

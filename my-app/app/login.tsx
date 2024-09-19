@@ -9,6 +9,7 @@ import AuthButton from '../components/AuthButton';
 export default function AuthScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLogin, setIsLogin] = useState(true);
     const router = useRouter();
@@ -19,14 +20,15 @@ export default function AuthScreen() {
         try {
             if (isLogin) {
                 await login(email, password);
+                router.replace('/HomeScreen');
             } else {
                 if (password !== confirmPassword) {
                     Alert.alert('Error', 'Passwords do not match');
                     return;
                 }
-                await register(email, password);
+                await register(email, password, username);
+                toggleAuthMode();
             }
-            router.replace('/HomeScreen');
         } catch (error) {
             console.error(`${isLogin ? 'Login' : 'Registration'} error:`, error);
             Alert.alert(`${isLogin ? 'Login' : 'Registration'} Failed`, 'Please check your input and try again.');
@@ -47,6 +49,13 @@ export default function AuthScreen() {
                     keyboardType="email-address"
                     autoCapitalize="none"
                 />
+                {!isLogin && (
+                    <AuthInput
+                        value={username}
+                        onChangeText={setUsername}
+                        placeholder="Username"
+                    />
+                )}
                 <AuthInput
                     value={password}
                     onChangeText={setPassword}
