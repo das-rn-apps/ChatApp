@@ -21,7 +21,7 @@ export default function NewGroupScreen() {
             fetchUsers(token)
                 .then(data => setUsers(data || []))
                 .catch(error => {
-                    console.error('Error fetching users:', error);
+                    console.log('Error fetching users1:', error);
                     setUsers([]);
                 });
         }

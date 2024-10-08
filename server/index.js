@@ -34,7 +34,7 @@ app.use(cors({
 app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/chats', chatRoutes);
-app.use('/api/users', userRoutes);
+app.use('/users', userRoutes);
 
 io.on('connection', (socket) => {
     console.log('A user connected');

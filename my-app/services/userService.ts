@@ -9,7 +9,5 @@ export const fetchUsers = async () => {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
             return { message: 'No users found' };
         }
-        console.error('Error fetching users:', error);
-        throw error;
     }
 };

@@ -38,8 +38,8 @@ export default function ChatScreen() {
     useEffect(() => {
         loadMessages();
         socketRef.current = io(SOCKET_URL);
-        socketRef.current.on('message', (message: Message) => {
-            setMessages(prevMessages => [...prevMessages, message]);
+        socketRef.current.on('updateMessages', (updatedMessage: Message) => {
+            setMessages(prevMessages => [...prevMessages, updatedMessage]);
         });
 
         return () => {
@@ -54,10 +54,12 @@ export default function ChatScreen() {
             try {
                 const sentMessage = await sendMessage(token, user.id, id.toString(), newMessage.trim());
                 setNewMessage('');
+
+                // Append the new message locally
                 setMessages(prevMessages => [...prevMessages, sentMessage]);
 
-                // Emit the message through socket
-                socketRef.current.emit('message', sentMessage);
+                // Emit the message through socket to update all members
+                socketRef.current.emit('newMessage', { chatId: id, message: sentMessage });
             } catch (error) {
                 console.error('Error sending message:', error);
             }
